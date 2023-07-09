@@ -1,0 +1,44 @@
+version: '3.9'
+services:
+  api:
+    depends_on:
+      - mongo_db
+    container_name: server-dev
+    image: server-dev:1.0.0
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:debug
+    ports:
+      - 3000:3000
+      - 9229:9229
+    environment:
+      MONGO_DB_HOST: mongo_db
+      MONGO_DB_DATABASE: task-board
+      MONGO_DB_PORT: 27017
+    networks:
+      - server-network
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: always
+  mongo_db:
+    image: mongo:4.4.5
+    restart: always
+    container_name: server-mongodb
+    networks:
+      - server-network
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      MONGO_INITDB_DATABASE: task-board
+
+networks:
+  server-network:
+    
